@@ -16,23 +16,33 @@ import json
 router = APIRouter()
 
 
-@router.post("/users/login", response_model=User, tags=["authentication"])
+@router.post(
+    "/users/login", response_model=User,
+    tags=["authentication"]
+)
 async def login(
-        user: UserInLogin, db: AsyncIOMotorClient = Depends(get_database)
+        user: UserInLogin, db:
+        AsyncIOMotorClient =
+        Depends(get_database)
 ):
     db_user = await get_user_by_username(db, user.username)
     if not db_user or not db_user.check_password(user.password):
         raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
+            status_code=HTTP_400_BAD_REQUEST,
+            detail="Incorrect username or password"
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(
-        data={"username": db_user.username}, expires_delta=access_token_expires
+    access_token_expires = timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    # return UserInResponse(user=User(**dbuser.dict(), token=token))
-    # print(db_user.dict())
-    return Response(json.dumps(User(**db_user.dict(), token=token).dict()), media_type="application/json")
+    token = create_access_token(
+        data={"username": db_user.username},
+        expires_delta=access_token_expires
+    )
+    return Response(json.dumps(
+        User(**db_user.dict(),
+            token=token).dict()
+    ), media_type="application/json")
 
 
 @router.post(
@@ -43,7 +53,8 @@ async def login(
 
 )
 async def register(
-        user: UserInCreate = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
+        user: UserInCreate = Body(..., embed=True),
+        db: AsyncIOMotorClient = Depends(get_database)
 ):
     await check_free_username_and_email(db, user.username, user.email)
 
@@ -55,4 +66,10 @@ async def register(
                 data={"username": db_user.username}, expires_delta=access_token_expires
             )
 
-            return Response(json.dumps(User(**db_user.dict(), token=token).dict()), media_type="application/json") # UserInResponse(user=User(**dbuser.dict(), token=token))
+            return Response(
+                json.dumps(
+                    User(
+                        **db_user.dict(),
+                        token=token).dict()
+                ), media_type="application/json"
+            ) # UserInResponse(user=User(**dbuser.dict(), token=token))
